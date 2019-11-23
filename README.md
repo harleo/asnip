@@ -16,7 +16,7 @@ _This tool is work in progress, if you make optimization changes yourself, you a
 _This tool requires [golang](https://golang.org/)_
 
 ### Update
-Run the same command as in the installation
+`go get -u github.com/harleo/asnip`
 
 ### Options
 
