@@ -81,8 +81,8 @@ func getIP(ipdomain string) []net.IP {
 
 func main() {
 	orgPtr := flag.String("t", "", "Domain or IP address (Required)")
-	savePtr := flag.String("s", "", "Save CIDRs and IPs to text files")
-	printPtr := flag.String("p", "", "Print results to console")
+	savePtr := flag.Bool("s", false, "Save CIDRs and IPs to text files")
+	printPtr := flag.Bool("p", false, "Print results to console")
 	flag.Parse()
 
 	if *orgPtr == "" {
@@ -115,7 +115,7 @@ func main() {
 	for _, cidr := range cidrs {
 		cidrList = append(cidrs)
 
-		if *printPtr == "" {
+		if *printPtr {
 			fmt.Println(cidr)
 		}
 	}
@@ -126,13 +126,13 @@ func main() {
 		for _, ipsl := range ips {
 			ipList = append(ips)
 
-			if *printPtr == "" {
+			if *printPtr {
 				fmt.Println(ipsl)
 			}
 		}
 	}
 
-	if *savePtr != "" {
+	if *savePtr {
 		writeLines(ipList, "./ips.txt")
 		writeLines(cidrList, "./cidrs.txt")
 	}
