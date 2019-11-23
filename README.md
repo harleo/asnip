@@ -15,6 +15,9 @@ _This tool is work in progress, if you make optimization changes yourself, you a
 
 _This tool requires [golang](https://golang.org/)_
 
+### Update
+Run the same command as in the installation
+
 ### Options
 
 ```console
@@ -23,14 +26,12 @@ Usage:
         Domain or IP address (Required)
   -p string
         Print results to console
-  -s string
-        Save CIDRs and IPs to text files
 ```
 
 ### Example
 
 ```console
-$ asnip -t google.com -s -p
+$ asnip -t google.com -p
 
 ASN: 15169 / GOOGLE - Google LLC, US
 8.8.4.0/24

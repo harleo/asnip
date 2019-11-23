@@ -18,6 +18,16 @@ import (
 	"strings"
 )
 
+type sliceVal []string
+
+func (s sliceVal) String() string {
+	var str string
+	for _, i := range s {
+		str += fmt.Sprintf("%s\n", i)
+	}
+	return str
+}
+
 func httpRequest(URI string) string {
 	response, errGet := http.Get(URI)
 	if errGet != nil {
@@ -60,7 +70,7 @@ func cidrToIP(cidr string) []string {
 func writeLines(lines []string, path string) error {
 	file, err := os.Create(path)
 	if err != nil {
-		return err
+		log.Fatalf("[!] Couldn't create cidrs.txt file: %s\n", err.Error())
 	}
 	defer file.Close()
 
@@ -81,7 +91,6 @@ func getIP(ipdomain string) []net.IP {
 
 func main() {
 	orgPtr := flag.String("t", "", "Domain or IP address (Required)")
-	savePtr := flag.Bool("s", false, "Save CIDRs and IPs to text files")
 	printPtr := flag.Bool("p", false, "Print results to console")
 	flag.Parse()
 
@@ -107,33 +116,32 @@ func main() {
 	splitASAPIResponse := strings.Split(httpRequest(ASAPIRequest), "\n")
 
 	cidrs := splitASAPIResponse[1:]
+	var ips []string
 	sort.Strings(cidrs)
 
-	var cidrList []string
-	var ipList []string
-
-	for _, cidr := range cidrs {
-		cidrList = append(cidrs)
-
-		if *printPtr {
-			fmt.Println(cidr)
-		}
+	if *printPtr {
+		fmt.Print(sliceVal(cidrs))
 	}
+	writeLines(cidrs, "cidrs.txt")
+
+	f, err := os.OpenFile("ips.txt",
+		os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Fatalf("[!] Couldn't open or create ips.txt file: %s\n", err.Error())
+	}
+	defer f.Close()
 
 	for _, cidr := range cidrs {
-		ips := cidrToIP(cidr)
-
+		ips = append(cidrToIP(cidr))
 		for _, ipsl := range ips {
-			ipList = append(ips)
 
 			if *printPtr {
 				fmt.Println(ipsl)
 			}
-		}
-	}
 
-	if *savePtr {
-		writeLines(ipList, "./ips.txt")
-		writeLines(cidrList, "./cidrs.txt")
+			if _, err := f.WriteString(ipsl + "\n"); err != nil {
+				log.Fatalf("[!] Couldn't write to ips.txt file: %s\n", err.Error())
+			}
+		}
 	}
 }
