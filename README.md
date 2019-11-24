@@ -33,13 +33,14 @@ Usage:
 ```console
 $ asnip -t google.com -p
 
-ASN: 15169 / GOOGLE - Google LLC, US
+[:] ASN: 15169 / GOOGLE - Google LLC, US
 8.8.4.0/24
-8.8.8.0/24
 [...]
+[:] Writing 501 CIDRs to file...
+[:] Converting to IPs...
 8.8.8.1
-8.8.8.2
 [...]
+[:] Writing 14222870 IPs to file...
 ```
 
 ### Disclaimer
