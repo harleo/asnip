@@ -35,11 +35,11 @@ $ asnip -t google.com -p
 
 [:] ASN: 15169 / GOOGLE - Google LLC, US
 8.8.4.0/24
-[...]
+--- snip ---
 [:] Writing 501 CIDRs to file...
 [:] Converting to IPs...
 8.8.8.1
-[...]
+--- snip ---
 [:] Writing 14222870 IPs to file...
 ```
 

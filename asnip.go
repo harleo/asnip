@@ -134,11 +134,12 @@ func main() {
 		ips = append(ips, cidrToIP(cidr)...)
 	}
 
-	for _, ipsValue := range ips {
-		if *printPtr {
+	if *printPtr {
+		for _, ipsValue := range ips {
 			fmt.Println(ipsValue)
 		}
 	}
+
 	fmt.Printf("[:] Writing %d IPs to file...\n", len(ips))
 	writeLines(ips, "ips.txt")
 }
