@@ -6,10 +6,10 @@ It uses the IP or domain name and looks up the Autonomous System Number (ASN), r
 
 >IP / Domain &rarr; ASN &rarr; CIDRs &rarr; IPs
 
-Please note that this technique only makes sense if the target has its own ASN. It is also advised to not perform tests on IP ranges that belong to multiple entities.
+Please note that this technique only makes sense if the target has its own ASN. It is also advised to not perform tests on IP ranges that you do not have permission to.
 
 ### Installation
-`go get github.com/harleo/asnip`
+`go get -v github.com/harleo/asnip`
 
 _This tool requires [golang](https://golang.org/)_
 
@@ -42,10 +42,10 @@ $ asnip -t google.com -p
 ```
 
 ### Disclaimer
-This tool must use an external API (which is subject to rate limiting) such as HackerTarget to retrieve relevant data. The conversion of CIDRs to IPs will be done locally.
+This tool must use an external API (which is subject to rate limiting) courtesy of HackerTarget to retrieve relevant data. The conversion of CIDRs to IPs will be done locally.
 
 _Asnip is work in progress, if you make optimization changes yourself, you are invited to create a pull request or check the GitHub issues page&mdash;help is always appreciated._
 
 ---
 
-&copy; 2019 Leonid Hartmann
+&copy; 2020 github.com/harleo &mdash; MIT License

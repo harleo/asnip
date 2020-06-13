@@ -1,6 +1,6 @@
 /*
 asnip: ASN target organization IP range attack surface mapping
-by https://github.com/harleo/
+by https://github.com/harleo/, MIT License
 */
 
 package main
@@ -90,38 +90,41 @@ func getIP(ipdomain string) []net.IP {
 }
 
 func main() {
-	orgPtr := flag.String("t", "", "Domain or IP address (Required)")
-	printPtr := flag.Bool("p", false, "Print results to console")
+	var (
+		target = flag.String("t", "", "Domain or IP address (Required)")
+		print  = flag.Bool("p", false, "Print results to console")
+	)
+
 	flag.Parse()
 
-	if *orgPtr == "" {
-		flag.PrintDefaults()
-		os.Exit(0)
-	}
+	ipAddr := getIP(*target)[0]
 
-	ipAddr := getIP(*orgPtr)[0]
+	apiIPRequest := fmt.Sprintf("https://api.hackertarget.com/aslookup/?q=%s", ipAddr)
+	apiIPParse := strings.Fields(httpRequest(apiIPRequest))
 
-	targetAPIRequest := fmt.Sprintf("https://api.hackertarget.com/aslookup/?q=%s", ipAddr)
-
-	// HT specific workaround: split quotes instead of commas in response because easier to parse
-	splitTargetResponse := strings.Split(httpRequest(targetAPIRequest), "\"")
-
-	if splitTargetResponse[0] == "API count exceeded - Increase Quota with Membership" {
+	if strings.Contains("API count exceeded", apiIPParse[1]) {
 		fmt.Println("[!] The HackerTarget API limit was reached, exiting...")
 		os.Exit(0)
 	}
 
-	fmt.Printf("[:] ASN: %s / %s \n", splitTargetResponse[3], splitTargetResponse[7])
+	filterIP := strings.FieldsFunc(apiIPParse[0], func(r rune) bool {
+		if r == ',' {
+			return true
+		}
+		return false
+	})
 
-	ASAPIRequest := fmt.Sprintf("https://api.hackertarget.com/aslookup/?q=AS%s", splitTargetResponse[3])
+	infoAS := strings.Trim(filterIP[1], "\"")
 
-	// HT specific workaround: split newlines because first line contains AS info
-	splitASAPIResponse := strings.Split(httpRequest(ASAPIRequest), "\n")
+	fmt.Printf("[:] ASN: %s ORG: %s \n", infoAS, strings.Trim(filterIP[3], "\""))
 
-	cidrs := splitASAPIResponse[1:]
+	apiASRequest := fmt.Sprintf("https://api.hackertarget.com/aslookup/?q=AS%s", infoAS)
+	apiASParse := strings.Fields(httpRequest(apiASRequest))
+
+	cidrs := apiASParse[2:]
 	sort.Strings(cidrs)
 
-	if *printPtr {
+	if *print {
 		fmt.Print(sliceVal(cidrs))
 	}
 	fmt.Printf("[:] Writing %d CIDRs to file...\n", len(cidrs))
@@ -134,7 +137,7 @@ func main() {
 		ips = append(ips, cidrToIP(cidr)...)
 	}
 
-	if *printPtr {
+	if *print {
 		for _, ipsValue := range ips {
 			fmt.Println(ipsValue)
 		}
@@ -142,4 +145,6 @@ func main() {
 
 	fmt.Printf("[:] Writing %d IPs to file...\n", len(ips))
 	writeLines(ips, "ips.txt")
+
+	fmt.Println("[:] Done.")
 }
