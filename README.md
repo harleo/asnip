@@ -6,7 +6,7 @@ It uses the IP or domain name and looks up the Autonomous System Number (ASN), r
 
 >IP / Domain &rarr; ASN &rarr; CIDRs &rarr; IPs
 
-Please note that this technique only makes sense if the target has its own ASN. It is also advised to not perform tests on IP ranges that belong to multiple entities.
+Please note that this technique only makes sense if the target has its own ASN. It is also advised to not perform tests on IP ranges that you do not have permission to.
 
 ### Installation
 `go get -v github.com/harleo/asnip`
