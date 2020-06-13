@@ -137,7 +137,6 @@ func main() {
 		ips = append(ips, cidrToIP(cidr)...)
 	}
 
-	if *printPtr {
 	if *print {
 		for _, ipsValue := range ips {
 			fmt.Println(ipsValue)
