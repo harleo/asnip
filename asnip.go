@@ -1,6 +1,6 @@
 /*
 asnip: ASN target organization IP range attack surface mapping
-by https://github.com/harleo/, MIT License
+by github.com/harleo — MIT License
 */
 
 package main
@@ -14,6 +14,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"regexp"
 	"sort"
 	"strings"
 )
@@ -89,6 +90,12 @@ func getIP(ipdomain string) []net.IP {
 	return ip
 }
 
+func parseResponse(response string) []string {
+	r := regexp.MustCompile(`[^\s"']+|"([^"]*)"|'([^']*)`)
+	arr := r.FindAllString(response, -1)
+	return arr
+}
+
 func main() {
 	var (
 		target = flag.String("t", "", "Domain or IP address (Required)")
@@ -97,31 +104,24 @@ func main() {
 
 	flag.Parse()
 
-	ipAddr := getIP(*target)[0]
+	ipAddress := getIP(*target)[0]
 
-	apiIPRequest := fmt.Sprintf("https://api.hackertarget.com/aslookup/?q=%s", ipAddr)
-	apiIPParse := strings.Fields(httpRequest(apiIPRequest))
+	apiRequest := fmt.Sprintf("https://api.hackertarget.com/aslookup/?q=%s", ipAddress)
+	apiResponse := httpRequest(apiRequest)
+	apiResponseInfo := parseResponse(apiResponse)
 
-	if strings.Contains("API count exceeded", apiIPParse[1]) {
+	if strings.Contains(apiResponseInfo[0], "API") {
 		fmt.Println("[!] The HackerTarget API limit was reached, exiting...")
 		os.Exit(0)
 	}
 
-	filterIP := strings.FieldsFunc(apiIPParse[0], func(r rune) bool {
-		if r == ',' {
-			return true
-		}
-		return false
-	})
+	fmt.Printf("[?] ASN: %s ORG: %s\n", apiResponseInfo[2], apiResponseInfo[6])
 
-	infoAS := strings.Trim(filterIP[1], "\"")
+	apiASRequest := fmt.Sprintf("https://api.hackertarget.com/aslookup/?q=AS%s", strings.Trim(apiResponseInfo[2], "\""))
+	apiASResponse := httpRequest(apiASRequest)
+	apiASResponseInfo := parseResponse(apiASResponse)
 
-	fmt.Printf("[:] ASN: %s ORG: %s \n", infoAS, strings.Trim(filterIP[3], "\""))
-
-	apiASRequest := fmt.Sprintf("https://api.hackertarget.com/aslookup/?q=AS%s", infoAS)
-	apiASParse := strings.Fields(httpRequest(apiASRequest))
-
-	cidrs := apiASParse[2:]
+	cidrs := apiASResponseInfo[3:]
 	sort.Strings(cidrs)
 
 	if *print {
@@ -146,5 +146,5 @@ func main() {
 	fmt.Printf("[:] Writing %d IPs to file...\n", len(ips))
 	writeLines(ips, "ips.txt")
 
-	fmt.Println("[:] Done.")
+	fmt.Println("[!] Done.")
 }
