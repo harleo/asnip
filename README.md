@@ -1,8 +1,8 @@
 
 ## Asnip
 
-![MIT License](https://img.shields.io/github/license/harleo/asnip?label=License&style=flat-square)
-![Twitter Follow](https://img.shields.io/twitter/follow/_harleo?color=00acee&label=Follow%20%40_harleo&style=flat-square)
+[![MIT License](https://img.shields.io/github/license/harleo/asnip?label=License&style=flat-square)](https://opensource.org/licenses/MIT)
+[![Follow on Twitter](https://img.shields.io/twitter/follow/_harleo?color=00acee&label=Follow%20%40_harleo&style=flat-square)](https://twitter.com/_harleo)
 
 Asnip retrieves all IPs of a target organization&mdash;used for attack surface mapping in reconnaissance phases.
 
