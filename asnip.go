@@ -67,19 +67,28 @@ func incrementIP(ip net.IP) {
 	}
 }
 
-func cidrToIP(cidr string) []string {
+func IsIPv6CIDR(cidr string) bool {
+	ip, _, _ := net.ParseCIDR(cidr)
+	return ip != nil && ip.To4() == nil
+}
+
+func CIDRToIP(cidr string) []string {
 	ip, ipnet, err := net.ParseCIDR(cidr)
 	if err != nil {
 		log.Fatalf("[!] Failed to convert CIDR to IP: %s\n", err.Error())
 	}
-
+	
 	var ips []string
 	for ip := ip.Mask(ipnet.Mask); ipnet.Contains(ip); incrementIP(ip) {
 		ips = append(ips, ip.String())
 	}
 
 	// Exclude network and broadcast addresses
-	return ips[1 : len(ips)-1]
+	if len(ips) >= 3 {
+		return ips[1 : len(ips)-1]
+	} else {
+		return ips
+	}
 }
 
 func getIP(ipdomain string) []net.IP {
@@ -96,10 +105,17 @@ func parseResponse(response string) []string {
 	return arr
 }
 
+func checkAPIRateLimit(response string) {
+	if strings.Contains(response, "API") {
+		fmt.Println("[!] The HackerTarget API limit was reached, exiting...")
+		os.Exit(0)
+	}
+}
+
 func main() {
 	var (
-		target = flag.String("t", "", "Domain or IP address (Required)")
-		print  = flag.Bool("p", false, "Print results to console")
+		target	= flag.String("t", "", "Domain or IP address (Required)")
+		print	= flag.Bool("p", false, "Print results to console")
 	)
 
 	flag.Parse()
@@ -109,32 +125,33 @@ func main() {
 	apiRequest := fmt.Sprintf("https://api.hackertarget.com/aslookup/?q=%s", ipAddress)
 	apiResponse := httpRequest(apiRequest)
 	apiResponseInfo := parseResponse(apiResponse)
-
-	if strings.Contains(apiResponseInfo[0], "API") {
-		fmt.Println("[!] The HackerTarget API limit was reached, exiting...")
-		os.Exit(0)
-	}
+	checkAPIRateLimit(apiResponse)
 
 	fmt.Printf("[?] ASN: %s ORG: %s\n", apiResponseInfo[2], apiResponseInfo[6])
 
 	apiASRequest := fmt.Sprintf("https://api.hackertarget.com/aslookup/?q=AS%s", strings.Trim(apiResponseInfo[2], "\""))
 	apiASResponse := httpRequest(apiASRequest)
 	apiASResponseInfo := parseResponse(apiASResponse)
+	checkAPIRateLimit(apiASResponse)
 
-	cidrs := apiASResponseInfo[3:]
-	sort.Strings(cidrs)
+	var CIDRSv4 []string
+	for _, cidrv4 := range apiASResponseInfo[3:] {
+		if !IsIPv6CIDR(cidrv4) {
+			CIDRSv4 = append(CIDRSv4, cidrv4)
+		}
+	}
+	sort.Strings(CIDRSv4)
 
 	if *print {
-		fmt.Print(sliceVal(cidrs))
+		fmt.Print(sliceVal(CIDRSv4))
 	}
-	fmt.Printf("[:] Writing %d CIDRs to file...\n", len(cidrs))
-	writeLines(cidrs, "cidrs.txt")
+	fmt.Printf("[:] Writing %d CIDRs to file...\n", len(CIDRSv4))
+	writeLines(CIDRSv4, "cidrs.txt")
 
 	var ips []string
-
 	fmt.Println("[:] Converting to IPs...")
-	for _, cidr := range cidrs {
-		ips = append(ips, cidrToIP(cidr)...)
+	for _, cidr := range CIDRSv4 {
+		ips = append(ips, CIDRToIP(cidr)...)
 	}
 
 	if *print {
