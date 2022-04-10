@@ -13,12 +13,9 @@ It uses the IP or domain name and looks up the Autonomous System Number (ASN), r
 Please note that this technique only makes sense if the target has its own ASN. It is also advised to not perform tests on IP ranges that you do not have permission to.
 
 ### Installation
-`go get -v github.com/harleo/asnip`
+`go install github.com/harleo/asnip@latest`
 
 _This tool requires [golang](https://golang.org/)_
-
-### Update
-`go get -u github.com/harleo/asnip`
 
 ### Options
 
